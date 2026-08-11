@@ -1,26 +1,126 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --near-black: #050505;
+  --surface: #0a0a0a;
+  --cherry: #8b1a2b;
+  --cherry-bright: #c41e3a;
+  --amber: #e8a04a;
+  --amber-soft: #c47a2a;
+  --cream: #f2ebe3;
+  --chrome: #c8cdd4;
+  --background: var(--near-black);
+  --foreground: var(--cream);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-near-black: var(--near-black);
+  --color-cherry: var(--cherry);
+  --color-amber: var(--amber);
+  --color-cream: var(--cream);
+  --font-sans: var(--font-vera-sans);
+  --font-display: var(--font-vera-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--near-black);
+  color: var(--cream);
+  font-family: var(--font-vera-sans), system-ui, sans-serif;
+}
+
+body.has-custom-cursor,
+body.has-custom-cursor * {
+  cursor: none !important;
+}
+
+@media (pointer: fine) {
+  body {
+    cursor: none;
+  }
+
+  body * {
+    cursor: none !important;
+  }
+}
+
+.vignette-layer {
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 35%,
+      color-mix(in oklab, var(--near-black) 72%, transparent) 78%,
+      var(--near-black) 100%
+    );
+}
+
+.ambient-glow {
+  background:
+    radial-gradient(
+      ellipse 55% 40% at 50% 70%,
+      color-mix(in oklab, var(--cherry) 28%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 30% at 70% 25%,
+      color-mix(in oklab, var(--amber) 12%, transparent),
+      transparent 65%
+    );
+  mix-blend-mode: screen;
+}
+
+.film-grain {
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  animation: grain-shift 0.8s steps(2) infinite;
+}
+
+.crackle-layer {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-1%, 1%);
+  }
+  50% {
+    transform: translate(1%, -1%);
+  }
+  75% {
+    transform: translate(-1%, -2%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film-grain {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .film-grain {
+    opacity: 0.12;
+  }
 }
