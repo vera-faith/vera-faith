@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { IntroOverlay } from "@/components/intro/IntroOverlay";
 import { CustomCursor } from "@/components/intro/CustomCursor";
@@ -16,6 +17,10 @@ const IntroCanvas = dynamic(() => import("@/components/canvas/IntroCanvas"), {
 });
 
 export function IntroExperience() {
+  useEffect(() => {
+    console.log("Vera Faith portfolio loaded");
+  }, []);
+
   const reducedMotion = usePrefersReducedMotion();
   const phase = useIntroStore((s) => s.phase);
   const parallax = usePointerParallax(
