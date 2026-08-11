@@ -18,7 +18,7 @@ const sans = Manrope({
 export const metadata: Metadata = {
   title: "Vera Faith",
   description:
-    "An experimental interactive music-themed developer portfolio — a private listening room for selected works.",
+    "An interactive record collection — dreamy selected works by Vera Faith.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${display.variable} ${sans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[var(--near-black)] text-[var(--cream)]">
+      <body className="flex min-h-full flex-col bg-[var(--ivory)] text-[var(--ink)]">
         {children}
       </body>
     </html>

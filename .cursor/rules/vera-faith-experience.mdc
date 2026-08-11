@@ -5,31 +5,31 @@ alwaysApply: true
 
 # Vera Faith Experience
 
-Experimental interactive music-themed developer portfolio. Feel like a futuristic private listening room / record archive — not a conventional website.
+Experimental interactive music-themed developer portfolio. Feel like entering a surreal interactive record archive — dreamy luxury 3D editorial, not a conventional website or SaaS template.
 
 Human-facing brand: **Vera Faith**. Internal slug / package id: **vera-faith**.
 
 ## Visual language
-- Black / near-black base; deep cherry red accents; warm amber/orange lighting
-- Chrome/metallic details, smoked glass, subtle film grain + vinyl texture, soft bloom/reflections
-- Sophisticated editorial typography; Japanese graphic design influence where appropriate
-- Premium music-equipment / museum-installation aesthetic
-- Avoid: generic SaaS, floating rounded cards, excessive gradients, template looks
+- Warm ivory, pearl pink, blush, lavender, soft beige bases
+- Translucent smoky glass, iridescence, glossy ceramic, crystal forms, subtle chrome/champagne metal
+- Soft diffused lighting, atmospheric depth, gentle reflections, extremely soft shadows
+- Sophisticated editorial typography; floating glass UI
+- Avoid: almost-black nightclub looks, heavy dark-red lighting, generic SaaS glassmorphism, stacked portfolio sections
 
 ## Interaction (primary)
-Everything should react when appropriate: cursor, drag, scroll velocity, hover, click, camera parallax, inertia, springs, lighting, audio state. Animations need physical weight and momentum.
+Homepage opens on a spatial **record-cover collection** (not a turntable). Browse via scroll/drag/swipe with inertia and snap. Hover lifts covers; click selects a project.
 
-## Portfolio model
-Projects = unique vinyl + sleeve. Browse collection → select → sleeve to turntable → vinyl slides out → lands → spins → tonearm lowers → project song plays → UI becomes liner notes/visuals.
+After selection: sleeve focuses → vinyl slides out → tonearm appears → user must **DROP THE NEEDLE** to start playback → project story reveals in floating glass panels.
 
-## Intro
-Cinematic close-up of record player in darkness; large vinyl + suspended tonearm; CTA **"DROP THE NEEDLE"**. On click: init audio → lower tonearm → spin → crackle/intro → camera into groove → tunnel/waveform → emerge into listening room.
+Always support **BACK TO COLLECTION** with a reverse transition.
+
+Animations need physical weight: springs, inertia, easing, subtle overshoot — no abrupt fades or gimmicky bounce.
 
 ## Tech & architecture
 - Next.js App Router, TypeScript, Tailwind, Motion (`motion/react`), Three.js, R3F, Drei, Zustand
-- Long-form text + a11y-critical UI in HTML; R3F for environmental 3D/spatial interaction; Motion for DOM UI
-- Data-driven project content — do not tightly couple projects to visual components
-- Desktop spectacular; mobile simplified; respect `prefers-reduced-motion`; usability over spectacle
+- Data-driven projects in `data/projects.ts` — do not hardcode projects into giant components
+- Long-form text + a11y-critical UI in HTML; R3F for environment, covers, vinyl, tonearm
+- Desktop spectacular; mobile simplified 3D; respect `prefers-reduced-motion`
 - Avoid unnecessary deps and monolithic components; strong TypeScript
 
 ## Implementation checklist

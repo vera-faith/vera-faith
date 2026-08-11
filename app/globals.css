@@ -1,25 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --near-black: #050505;
-  --surface: #0a0a0a;
-  --cherry: #8b1a2b;
-  --cherry-bright: #c41e3a;
-  --amber: #e8a04a;
-  --amber-soft: #c47a2a;
-  --cream: #f2ebe3;
-  --chrome: #c8cdd4;
-  --background: var(--near-black);
-  --foreground: var(--cream);
+  --ivory: #f7f1ea;
+  --pearl: #f3e9ef;
+  --blush: #f0d0d8;
+  --pink: #e8b7c6;
+  --lavender: #d7c6e6;
+  --beige: #e8dccf;
+  --mist: #efe8f2;
+  --champagne: #d9c4a5;
+  --ink: #3a3140;
+  --ink-soft: #6b5f74;
+  --background: var(--ivory);
+  --foreground: var(--ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-near-black: var(--near-black);
-  --color-cherry: var(--cherry);
-  --color-amber: var(--amber);
-  --color-cream: var(--cream);
+  --color-ivory: var(--ivory);
+  --color-pearl: var(--pearl);
+  --color-blush: var(--blush);
+  --color-pink: var(--pink);
+  --color-lavender: var(--lavender);
+  --color-ink: var(--ink);
   --font-sans: var(--font-vera-sans);
   --font-display: var(--font-vera-display);
 }
@@ -35,92 +39,66 @@ body {
 
 body {
   margin: 0;
-  background: var(--near-black);
-  color: var(--cream);
+  background: var(--ivory);
+  color: var(--ink);
   font-family: var(--font-vera-sans), system-ui, sans-serif;
 }
 
-body.has-custom-cursor,
-body.has-custom-cursor * {
-  cursor: none !important;
-}
-
 @media (pointer: fine) {
-  body {
-    cursor: none;
-  }
-
+  body,
   body * {
     cursor: none !important;
   }
 }
 
-.vignette-layer {
-  background:
-    radial-gradient(
-      ellipse at center,
-      transparent 35%,
-      color-mix(in oklab, var(--near-black) 72%, transparent) 78%,
-      var(--near-black) 100%
-    );
+canvas {
+  touch-action: none;
 }
 
-.ambient-glow {
+.soft-haze {
   background:
     radial-gradient(
-      ellipse 55% 40% at 50% 70%,
-      color-mix(in oklab, var(--cherry) 28%, transparent),
-      transparent 70%
+      ellipse 60% 45% at 50% 12%,
+      color-mix(in oklab, var(--blush) 22%, transparent),
+      transparent 72%
     ),
     radial-gradient(
-      ellipse 40% 30% at 70% 25%,
-      color-mix(in oklab, var(--amber) 12%, transparent),
-      transparent 65%
+      ellipse 45% 35% at 85% 78%,
+      color-mix(in oklab, var(--lavender) 16%, transparent),
+      transparent 72%
     );
-  mix-blend-mode: screen;
-}
-
-.film-grain {
-  opacity: 0.18;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
-  animation: grain-shift 0.8s steps(2) infinite;
-}
-
-.crackle-layer {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
-  background-size: 120px 120px;
   mix-blend-mode: soft-light;
-  opacity: 0.55;
+  opacity: 0.4;
+  pointer-events: none;
 }
 
-@keyframes grain-shift {
-  0% {
-    transform: translate(0, 0);
-  }
-  25% {
-    transform: translate(-1%, 1%);
-  }
-  50% {
-    transform: translate(1%, -1%);
-  }
-  75% {
-    transform: translate(-1%, -2%);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
+.soft-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 45%,
+    color-mix(in oklab, var(--pearl) 35%, transparent) 100%
+  );
+}
+
+.glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 1.5rem;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.52),
+    rgba(255, 248, 252, 0.28)
+  );
+  box-shadow:
+    0 18px 50px rgba(90, 70, 95, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .film-grain {
-    animation: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .film-grain {
-    opacity: 0.12;
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
   }
 }

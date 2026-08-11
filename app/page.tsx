@@ -1,5 +1,5 @@
-import { IntroExperience } from "@/components/intro/IntroExperience";
+import { PortfolioExperience } from "@/components/experience/PortfolioExperience";
 
 export default function Home() {
-  return <IntroExperience />;
+  return <PortfolioExperience />;
 }
