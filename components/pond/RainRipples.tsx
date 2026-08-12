@@ -55,9 +55,9 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
     window.addEventListener("resize", resize);
 
     const ripples: Ripple[] = [];
-    let nextTiny = performance.now() + 180;
-    let nextEdge = performance.now() + 280;
-    let nextOpen = performance.now() + 900;
+    let nextTiny = performance.now() + 400;
+    let nextEdge = performance.now() + 500;
+    let nextOpen = performance.now() + 1600;
 
     function spawn(
       x: number,
@@ -103,31 +103,30 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
 
       if (now >= nextEdge) {
         spawnNearAnchor();
-        spawnNearAnchor();
-        if (Math.random() > 0.35) spawnNearAnchor();
-        nextEdge = now + 240 + Math.random() * 320;
+        if (Math.random() > 0.5) spawnNearAnchor();
+        nextEdge = now + 480 + Math.random() * 520;
       }
 
       if (now >= nextTiny) {
         spawn(
           Math.random() * width,
           Math.random() * height,
-          0.16 + Math.random() * 0.14,
-          1.5 + Math.random() * 0.7,
-          5 + Math.random() * 9,
+          0.12 + Math.random() * 0.1,
+          1.3 + Math.random() * 0.6,
+          4 + Math.random() * 6,
         );
-        nextTiny = now + 260 + Math.random() * 340;
+        nextTiny = now + 420 + Math.random() * 480;
       }
 
       if (now >= nextOpen) {
         spawn(
           Math.random() * width,
           Math.random() * height,
-          0.2 + Math.random() * 0.12,
-          2.2 + Math.random() * 0.6,
-          11 + Math.random() * 10,
+          0.14 + Math.random() * 0.1,
+          1.8 + Math.random() * 0.5,
+          7 + Math.random() * 7,
         );
-        nextOpen = now + 1200 + Math.random() * 1000;
+        nextOpen = now + 1800 + Math.random() * 1400;
       }
 
       ctx!.clearRect(0, 0, width, height);
@@ -181,7 +180,7 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-55"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-40"
       aria-hidden
     />
   );
