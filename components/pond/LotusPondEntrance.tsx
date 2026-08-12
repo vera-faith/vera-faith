@@ -104,15 +104,14 @@ export function LotusPondEntrance() {
         ))}
       </div>
 
-      {/* Ripples under sparkles so glints sit on the living surface */}
+      {/* Ripples above flora so edge wakes read clearly on the pond surface */}
       <RainRipples reducedMotion={reducedMotion} anchors={anchors} flowTimeRef={flowTimeRef} />
       <CausticsLayer reducedMotion={reducedMotion} />
       <SparkleAura reducedMotion={reducedMotion} flowTime={flowTime} />
 
-      {/* Cinematic depth */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_48%,_rgba(0,6,5,0.52)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/8 via-transparent to-black/40" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_15%_10%,_rgba(255,245,220,0.06),_transparent_70%)]" />
+      {/* Lighter vignette so water motion stays visible */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_55%,_rgba(0,6,5,0.4)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/32" />
     </section>
   );
 }

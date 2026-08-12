@@ -10,57 +10,62 @@ type WaterFlowFilterProps = {
   onFlow?: (t: number) => void;
 };
 
-/** Shared flow clock + dual water warps: broad current + fine glassy micro-ripples. */
+/** Shared flow clock + dual water warps. onFlow is read via ref so parent
+ * re-renders never restart the animation loop. */
 export function WaterFlowFilter({ reducedMotion, onFlow }: WaterFlowFilterProps) {
   const offsetWaterRef = useRef<SVGFEOffsetElement>(null);
   const offsetMicroRef = useRef<SVGFEOffsetElement>(null);
+  const onFlowRef = useRef(onFlow);
+
+  useEffect(() => {
+    onFlowRef.current = onFlow;
+  }, [onFlow]);
 
   useEffect(() => {
     if (reducedMotion) return;
     let raf = 0;
     const start = performance.now();
     let lastFilterUpdate = 0;
-    const FILTER_MS = 120;
+    const FILTER_MS = 100;
 
     function tick() {
       const now = performance.now();
       const t = (now - start) / 1000;
       if (now - lastFilterUpdate >= FILTER_MS) {
         lastFilterUpdate = now;
-        offsetWaterRef.current?.setAttribute("dx", (t * 26).toFixed(2));
-        offsetWaterRef.current?.setAttribute("dy", (t * 12).toFixed(2));
-        offsetMicroRef.current?.setAttribute("dx", (t * 38).toFixed(2));
-        offsetMicroRef.current?.setAttribute("dy", (t * 17).toFixed(2));
+        offsetWaterRef.current?.setAttribute("dx", (t * 32).toFixed(2));
+        offsetWaterRef.current?.setAttribute("dy", (t * 14).toFixed(2));
+        offsetMicroRef.current?.setAttribute("dx", (t * 48).toFixed(2));
+        offsetMicroRef.current?.setAttribute("dy", (t * 22).toFixed(2));
       }
-      onFlow?.(t);
+      onFlowRef.current?.(t);
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [reducedMotion, onFlow]);
+  }, [reducedMotion]);
 
   return (
     <svg className="absolute h-0 w-0 overflow-hidden" aria-hidden focusable="false">
       <defs>
-        <filter id={WATER_FLOW_FILTER_ID} x="-16%" y="-16%" width="132%" height="132%">
-          <feTurbulence type="turbulence" baseFrequency="0.0028 0.005" numOctaves={1} seed={3} result="noise" />
+        <filter id={WATER_FLOW_FILTER_ID} x="-18%" y="-18%" width="136%" height="136%">
+          <feTurbulence type="turbulence" baseFrequency="0.0032 0.0058" numOctaves={1} seed={3} result="noise" />
           <feOffset ref={offsetWaterRef} in="noise" dx="0" dy="0" result="flowingNoise" />
           <feDisplacementMap
             in="SourceGraphic"
             in2="flowingNoise"
-            scale={58}
+            scale={72}
             xChannelSelector="R"
             yChannelSelector="G"
           />
         </filter>
-        {/* Finer warp for glassy micro-surface detail */}
-        <filter id={WATER_MICRO_FILTER_ID} x="-10%" y="-10%" width="120%" height="120%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves={2} seed={7} result="micro" />
+        <filter id={WATER_MICRO_FILTER_ID} x="-12%" y="-12%" width="124%" height="124%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.014 0.02" numOctaves={2} seed={7} result="micro" />
           <feOffset ref={offsetMicroRef} in="micro" dx="0" dy="0" result="flowingMicro" />
           <feDisplacementMap
             in="SourceGraphic"
             in2="flowingMicro"
-            scale={12}
+            scale={18}
             xChannelSelector="R"
             yChannelSelector="G"
           />

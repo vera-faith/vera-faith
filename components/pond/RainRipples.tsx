@@ -6,14 +6,12 @@ export type PlantAnchor = {
   nx: number;
   ny: number;
   radius: number;
-  /** Optional tint for flower-colored edge ripples */
   tint?: "pink" | "green";
 };
 
 type RainRipplesProps = {
   reducedMotion: boolean;
   anchors?: readonly PlantAnchor[];
-  /** Shared pond time in seconds for synced wakes */
   flowTimeRef?: MutableRefObject<number>;
 };
 
@@ -27,10 +25,7 @@ type FreeRipple = {
   aspect: number;
 };
 
-/**
- * Water that wraps plant silhouettes: continuous expanding wakes from each
- * floater edge + tiny traveling arcs + sparse open-water sparkles.
- */
+/** Visible living ripples — plant-edge wakes + open-water waves. */
 export function RainRipples({ reducedMotion, anchors = [], flowTimeRef }: RainRipplesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -44,7 +39,7 @@ export function RainRipples({ reducedMotion, anchors = [], flowTimeRef }: RainRi
     let height = 0;
 
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas!.width = width * dpr;
@@ -57,10 +52,11 @@ export function RainRipples({ reducedMotion, anchors = [], flowTimeRef }: RainRi
     window.addEventListener("resize", resize);
 
     const free: FreeRipple[] = [];
-    let nextFree = performance.now() + 500;
+    let nextFree = performance.now() + 200;
+    let nextWave = performance.now() + 100;
 
     function spawnFree(x: number, y: number, strength: number, life: number, maxRadius: number) {
-      if (free.length > 22) free.shift();
+      if (free.length > 48) free.shift();
       free.push({
         x,
         y,
@@ -68,12 +64,28 @@ export function RainRipples({ reducedMotion, anchors = [], flowTimeRef }: RainRi
         life,
         maxRadius,
         strength,
-        aspect: 1.4,
+        aspect: 1.35 + Math.random() * 0.25,
       });
     }
 
+    // Seed visible ripples immediately
+    for (let i = 0; i < 12; i++) {
+      spawnFree(
+        Math.random() * Math.max(width, 1),
+        Math.random() * Math.max(height, 1),
+        0.35 + Math.random() * 0.25,
+        2 + Math.random(),
+        18 + Math.random() * 28,
+      );
+    }
+    for (const a of anchors) {
+      const cx = a.nx * Math.max(width, 1);
+      const cy = a.ny * Math.max(height, 1);
+      spawnFree(cx + 20, cy, 0.4, 2.2, 22);
+    }
+
     function onPointerDown(event: PointerEvent) {
-      spawnFree(event.clientX, event.clientY, 0.35, 1.8, 14);
+      spawnFree(event.clientX, event.clientY, 0.55, 2.4, 28);
     }
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
 
@@ -81,76 +93,97 @@ export function RainRipples({ reducedMotion, anchors = [], flowTimeRef }: RainRi
     function tick() {
       const now = performance.now();
       const t = flowTimeRef?.current ?? now / 1000;
-      const minDim = Math.min(width, height);
+      const minDim = Math.min(width, height) || 1;
 
       if (now >= nextFree) {
         spawnFree(
           Math.random() * width,
           Math.random() * height,
-          0.1 + Math.random() * 0.08,
-          1.2 + Math.random() * 0.5,
-          3 + Math.random() * 5,
+          0.22 + Math.random() * 0.2,
+          1.6 + Math.random() * 0.9,
+          10 + Math.random() * 18,
         );
-        nextFree = now + 420 + Math.random() * 520;
+        if (anchors.length) {
+          const a = anchors[Math.floor(Math.random() * anchors.length)];
+          const ang = Math.random() * Math.PI * 2;
+          const edge = a.radius * minDim * (0.8 + Math.random() * 0.6);
+          spawnFree(
+            a.nx * width + Math.cos(ang) * edge,
+            a.ny * height + Math.sin(ang) * edge * 0.7,
+            0.35 + Math.random() * 0.25,
+            1.8 + Math.random(),
+            14 + Math.random() * 20,
+          );
+        }
+        nextFree = now + 160 + Math.random() * 220;
+      }
+
+      if (now >= nextWave) {
+        // Broad soft swell rings in open water
+        spawnFree(
+          Math.random() * width,
+          Math.random() * height,
+          0.18 + Math.random() * 0.12,
+          2.8 + Math.random(),
+          40 + Math.random() * 50,
+        );
+        nextWave = now + 700 + Math.random() * 900;
       }
 
       ctx!.clearRect(0, 0, width, height);
       ctx!.globalCompositeOperation = "lighter";
 
-      // Silhouette-tracing wakes — rings expand FROM each plant edge outward
+      // Continuous silhouette wakes — clearly visible
       for (let i = 0; i < anchors.length; i++) {
         const a = anchors[i];
         const cx = a.nx * width;
         const cy = a.ny * height;
-        const baseR = Math.max(18, a.radius * minDim * 1.05);
-        const isPink = a.tint === "pink";
-        const stroke = isPink ? "220, 170, 190" : "190, 225, 210";
+        const baseR = Math.max(22, a.radius * minDim * 1.15);
+        const stroke = a.tint === "pink" ? "235, 190, 210" : "205, 240, 225";
 
-        // Contact meniscus — tight ellipse hugging the silhouette
+        // Meniscus
         ctx!.save();
         ctx!.translate(cx, cy + 2);
-        ctx!.scale(1.35, 0.72);
+        ctx!.scale(1.4, 0.7);
         ctx!.beginPath();
-        ctx!.arc(0, 0, baseR * 0.92, 0, Math.PI * 2);
-        ctx!.strokeStyle = `rgba(${stroke}, 0.16)`;
-        ctx!.lineWidth = 1.1;
+        ctx!.arc(0, 0, baseR * 0.95, 0, Math.PI * 2);
+        ctx!.strokeStyle = `rgba(${stroke}, 0.32)`;
+        ctx!.lineWidth = 1.4;
         ctx!.stroke();
         ctx!.restore();
 
-        // Expanding wake rings (3 phases per plant)
-        for (let k = 0; k < 3; k++) {
-          const phase = (t * 0.35 + i * 0.17 + k * 0.33) % 1;
-          const r = baseR + phase * (26 + a.radius * minDim * 0.35);
-          const fade = (1 - phase) * (1 - phase) * 0.28;
+        // 4 expanding wake rings
+        for (let k = 0; k < 4; k++) {
+          const phase = (t * 0.45 + i * 0.13 + k * 0.25) % 1;
+          const r = baseR + phase * (38 + a.radius * minDim * 0.5);
+          const fade = (1 - phase) * (1 - phase) * 0.48;
           ctx!.save();
           ctx!.translate(cx, cy + 3);
-          ctx!.scale(1.4, 0.7);
+          ctx!.scale(1.45, 0.68);
           ctx!.beginPath();
           ctx!.arc(0, 0, r, 0, Math.PI * 2);
           ctx!.strokeStyle = `rgba(${stroke}, ${fade})`;
-          ctx!.lineWidth = 0.85;
+          ctx!.lineWidth = 1.15;
           ctx!.stroke();
           ctx!.restore();
         }
 
-        // Traveling micro-arcs that trace the outline (nature wrapping water)
-        for (let s = 0; s < 6; s++) {
-          const ang = t * 0.9 + i * 0.4 + s * ((Math.PI * 2) / 6);
-          const wobble = Math.sin(t * 1.4 + s + i) * 3;
-          const rr = baseR + 2 + wobble;
+        // Traveling outline arcs
+        for (let s = 0; s < 8; s++) {
+          const ang = t * 1.1 + i * 0.35 + s * ((Math.PI * 2) / 8);
+          const wobble = Math.sin(t * 1.6 + s + i) * 4;
           ctx!.save();
           ctx!.translate(cx, cy + 2);
-          ctx!.scale(1.35, 0.72);
+          ctx!.scale(1.4, 0.7);
           ctx!.beginPath();
-          ctx!.arc(0, 0, rr, ang, ang + 0.55);
-          ctx!.strokeStyle = `rgba(${stroke}, 0.22)`;
-          ctx!.lineWidth = 1.15;
+          ctx!.arc(0, 0, baseR + 3 + wobble, ang, ang + 0.65);
+          ctx!.strokeStyle = `rgba(${stroke}, 0.38)`;
+          ctx!.lineWidth = 1.35;
           ctx!.stroke();
           ctx!.restore();
         }
       }
 
-      // Sparse free ripples in open water
       for (let i = free.length - 1; i >= 0; i--) {
         const r = free[i];
         const age = (now - r.born) / 1000;
@@ -159,17 +192,24 @@ export function RainRipples({ reducedMotion, anchors = [], flowTimeRef }: RainRi
           free.splice(i, 1);
           continue;
         }
-        const eased = 1 - Math.pow(1 - u, 2.2);
-        const radius = eased * r.maxRadius;
-        const fade = (1 - u) * (1 - u) * 0.2 * r.strength;
+        const eased = 1 - Math.pow(1 - u, 2.1);
+        const radius = Math.max(0.5, eased * r.maxRadius);
+        const fade = (1 - u) * (1 - u) * 0.42 * r.strength;
         ctx!.save();
         ctx!.translate(r.x, r.y);
         ctx!.scale(r.aspect, 1);
         ctx!.beginPath();
         ctx!.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx!.strokeStyle = `rgba(200, 230, 215, ${fade})`;
-        ctx!.lineWidth = 0.65;
+        ctx!.strokeStyle = `rgba(215, 240, 230, ${fade})`;
+        ctx!.lineWidth = 1.05;
         ctx!.stroke();
+        if (radius > 8) {
+          ctx!.beginPath();
+          ctx!.arc(0, 0, radius * 0.55, 0, Math.PI * 2);
+          ctx!.strokeStyle = `rgba(200, 230, 220, ${fade * 0.45})`;
+          ctx!.lineWidth = 0.7;
+          ctx!.stroke();
+        }
         ctx!.restore();
       }
 
@@ -189,7 +229,7 @@ export function RainRipples({ reducedMotion, anchors = [], flowTimeRef }: RainRi
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-70"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-90"
       aria-hidden
     />
   );
