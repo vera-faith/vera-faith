@@ -35,8 +35,8 @@ export function CausticsLayer({ reducedMotion }: CausticsLayerProps) {
               "radial-gradient(ellipse 50% 20%, rgba(255,248,220,0.55) 0%, transparent 68%), radial-gradient(circle, rgba(255,252,235,0.55) 0px, transparent 2.2px)",
             backgroundSize: "100px 55px, 36px 28px",
           }}
-          animate={{ x: [0, -36], y: [0, 14] }}
-          transition={{ duration: 7.5, repeat: Infinity, ease: "linear" }}
+          animate={{ x: [0, -28], y: [0, 18] }}
+          transition={{ duration: 6.8, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
           className="absolute -inset-[14%] opacity-[0.16]"

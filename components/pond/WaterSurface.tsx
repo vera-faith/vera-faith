@@ -25,15 +25,25 @@ export function WaterSurface({ reducedMotion }: WaterSurfaceProps) {
           fill
           priority
           sizes="100vw"
-          className="object-cover brightness-[0.72] contrast-[1.28] saturate-[1.35]"
+          className="object-cover brightness-[0.7] contrast-[1.3] saturate-[1.4]"
         />
-        <div className="absolute inset-0 opacity-[0.55] mix-blend-soft-light">
+        {/* Reference mood wash — deep emerald / caustic structure */}
+        <div className="absolute inset-0 opacity-[0.42] mix-blend-soft-light">
+          <Image
+            src="/pond/pond-mood-ref.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover brightness-[0.85] contrast-[1.1] saturate-[1.2]"
+          />
+        </div>
+        <div className="absolute inset-0 opacity-[0.5] mix-blend-soft-light">
           <Image
             src="/pond/pond-water-flow.jpg"
             alt=""
             fill
             sizes="100vw"
-            className="object-cover brightness-[0.65] contrast-[1.2] saturate-[1.25]"
+            className="object-cover brightness-[0.62] contrast-[1.22] saturate-[1.3]"
           />
         </div>
         <div className="absolute inset-0 opacity-[0.35]">

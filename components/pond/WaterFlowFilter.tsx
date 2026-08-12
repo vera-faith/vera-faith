@@ -54,7 +54,7 @@ export function WaterFlowFilter({ reducedMotion, onFlow }: WaterFlowFilterProps)
           <feDisplacementMap
             in="SourceGraphic"
             in2="flowingNoise"
-            scale={72}
+            scale={88}
             xChannelSelector="R"
             yChannelSelector="G"
           />

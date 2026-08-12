@@ -112,6 +112,7 @@ export function keyOutWhite(
 
   ctx.putImageData(frame, 0, 0);
   tintWetEdges(ctx, width, height);
+  settleIntoPond(ctx, width, height);
   return canvas;
 }
 
@@ -138,6 +139,55 @@ function tintWetEdges(
   ctx.putImageData(frame, 0, 0);
 }
 
+/** Pull sticker-bright highlights into pond light so flora shares water tone. */
+function settleIntoPond(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  const frame = ctx.getImageData(0, 0, width, height);
+  const data = frame.data;
+  const pond: [number, number, number] = [14, 48, 40];
+
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3];
+    if (a < 8) continue;
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    // Crush neon speculars (common on lily-pad sprites)
+    if (lum > 175) {
+      const crush = Math.min(0.7, (lum - 175) / 80);
+      r = Math.round(r * (1 - crush) + 55 * crush);
+      g = Math.round(g * (1 - crush) + 95 * crush);
+      b = Math.round(b * (1 - crush) + 75 * crush);
+    }
+
+    // Slight cool-green ambient so plants share pond color temperature
+    const ambient = 0.12;
+    r = Math.round(r * (1 - ambient) + pond[0] * ambient);
+    g = Math.round(g * (1 - ambient) + pond[1] * ambient);
+    b = Math.round(b * (1 - ambient) + pond[2] * ambient);
+
+    // Soft vertical wetness — lower third drinks more pond tone
+    const y = ((i / 4) / width) | 0;
+    const depth = y / height;
+    if (depth > 0.55) {
+      const soak = (depth - 0.55) * 0.45;
+      r = Math.round(r * (1 - soak) + pond[0] * soak);
+      g = Math.round(g * (1 - soak) + pond[1] * soak);
+      b = Math.round(b * (1 - soak) + pond[2] * soak);
+    }
+
+    data[i] = r;
+    data[i + 1] = g;
+    data[i + 2] = b;
+  }
+  ctx.putImageData(frame, 0, 0);
+}
+
 type KeyOptions = { tolerance?: number; feather?: number };
 
 /** Load + matte a sprite once per src, reusing the result across floaters.
@@ -146,7 +196,7 @@ export function loadKeyedSprite(
   src: string,
   { tolerance = 30, feather = 18 }: KeyOptions = {},
 ): Promise<HTMLCanvasElement> {
-  const cacheKey = `${src}|${tolerance}|${feather}`;
+  const cacheKey = `${src}|${tolerance}|${feather}|settle2`;
   const hit = keyedCache.get(cacheKey);
   if (hit) return Promise.resolve(hit);
 

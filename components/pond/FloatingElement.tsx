@@ -160,10 +160,10 @@ export function FloatingElement({
   // Scene-matched grade — pads darker/less neon; flowers slightly muted into pond light
   const grade =
     kind === "pad"
-      ? `brightness(${brightness * 0.78}) saturate(0.82) contrast(1.12)`
+      ? `brightness(${brightness * 0.72}) saturate(0.78) contrast(1.1)`
       : kind === "baby"
-        ? `brightness(${brightness * 0.88}) saturate(0.9) contrast(1.06)`
-        : `brightness(${brightness * 0.9}) saturate(0.92) contrast(1.07)`;
+        ? `brightness(${brightness * 0.84}) saturate(0.88) contrast(1.05)`
+        : `brightness(${brightness * 0.86}) saturate(0.9) contrast(1.06)`;
 
   const canvasStyle = {
     width: "100%",
@@ -251,6 +251,12 @@ export function FloatingElement({
           style={{ width: "88%", height: "26%", filter: "blur(3px)" }}
         />
 
+        {/* Secondary soft shadow offset down-right with light direction */}
+        <div
+          className="pointer-events-none absolute left-[58%] top-[76%] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_center,_rgba(0,6,5,0.45)_0%,_transparent_72%)]"
+          style={{ width: "70%", height: "20%", filter: "blur(8px)" }}
+        />
+
         {reducedMotion || !usePetals ? (
           <canvas ref={bodyRef} style={canvasStyle} />
         ) : (
@@ -317,8 +323,19 @@ export function FloatingElement({
             style={{
               ...silhouetteMask,
               background:
-                "linear-gradient(to top, rgba(8,40,34,0.35) 0%, rgba(8,40,34,0.12) 18%, transparent 38%)",
-              opacity: 0.85,
+                "linear-gradient(to top, rgba(6,36,30,0.42) 0%, rgba(8,40,34,0.18) 22%, transparent 42%)",
+              opacity: 0.95,
+            }}
+          />
+        )}
+        {/* Micro rim light along silhouette bottom — surface tension cue */}
+        {maskUrl && (
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              ...silhouetteMask,
+              boxShadow: "inset 0 -6px 10px rgba(160,210,190,0.18)",
+              opacity: 0.7,
             }}
           />
         )}
