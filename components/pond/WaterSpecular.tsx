@@ -8,7 +8,10 @@ type WaterSpecularProps = {
   flowTime: MotionValue<number>;
 };
 
-/** Stronger glassy wave-crest highlights — visible liquid motion on deep emerald. */
+/**
+ * Natural water highlights only — soft crest glints + sparkles.
+ * No long stroked white lines.
+ */
 export function WaterSpecular({ reducedMotion, flowTime }: WaterSpecularProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -40,59 +43,80 @@ export function WaterSpecular({ reducedMotion, flowTime }: WaterSpecularProps) {
       ctx!.clearRect(0, 0, width, height);
       ctx!.globalCompositeOperation = "lighter";
 
+      // Soft sun pool — upper left
       const g = ctx!.createRadialGradient(
-        width * 0.14 + Math.sin(t * 0.16) * 20,
+        width * 0.14 + Math.sin(t * 0.12) * 14,
         height * 0.1,
         0,
-        width * 0.18,
-        height * 0.16,
-        Math.max(width, height) * 0.55,
+        width * 0.24,
+        height * 0.22,
+        Math.max(width, height) * 0.58,
       );
-      g.addColorStop(0, "rgba(200, 235, 215, 0.14)");
-      g.addColorStop(0.4, "rgba(90, 170, 145, 0.06)");
+      g.addColorStop(0, "rgba(230, 245, 220, 0.18)");
+      g.addColorStop(0.4, "rgba(110, 180, 150, 0.07)");
       g.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx!.fillStyle = g;
       ctx!.fillRect(0, 0, width, height);
 
-      // Undulating wave ridges drifting down-right
-      for (let i = 0; i < 20; i++) {
-        const phase = t * 0.34 + i * 0.39;
-        const yBase = ((i / 20 + t * 0.045) % 1.25) - 0.08;
-        const y = yBase * height;
-        const amp = 12 + (i % 4) * 4.5;
-        const lit = 1 - Math.min(1, (y / height) * 0.7);
-        const alpha = (0.055 + (Math.sin(phase * 1.4) * 0.5 + 0.5) * 0.1) * lit;
+      // Soft elongated crest glints (blobs, not strokes) drifting down-right
+      for (let i = 0; i < 48; i++) {
+        const phase = t * 0.28 + i * 1.17;
+        const px =
+          ((i * 137.3 + t * 28) % (width + 160)) - 80 + Math.sin(phase) * 18;
+        const py =
+          ((i * 89.1 + t * 17) % (height + 80)) - 40 + Math.cos(phase * 0.7) * 10;
+        const sun = 0.5 + 0.5 * Math.max(0, 1 - (px / width) * 0.7 - (py / height) * 0.55);
+        const pulse = 0.55 + 0.45 * (Math.sin(phase * 1.6) * 0.5 + 0.5);
+        const a = 0.045 * sun * pulse;
+        if (a < 0.012) continue;
 
+        const rw = 28 + (i % 5) * 10;
+        const rh = 4 + (i % 3) * 2.2;
+        ctx!.save();
+        ctx!.translate(px, py);
+        ctx!.rotate(-0.35 + Math.sin(phase) * 0.08);
+        const eg = ctx!.createRadialGradient(0, 0, 0, 0, 0, rw);
+        eg.addColorStop(0, `rgba(245, 252, 240, ${a * 1.4})`);
+        eg.addColorStop(0.45, `rgba(200, 235, 215, ${a * 0.55})`);
+        eg.addColorStop(1, "rgba(0,0,0,0)");
+        ctx!.fillStyle = eg;
+        ctx!.scale(1, rh / rw);
         ctx!.beginPath();
-        for (let x = -50; x <= width + 50; x += 12) {
-          const yy =
-            y +
-            Math.sin(x * 0.0075 + phase * 2.2) * amp +
-            Math.sin(x * 0.017 + phase * 1.1) * (amp * 0.38) +
-            Math.sin(t * 0.18) * 5;
-          if (x === -50) ctx!.moveTo(x, yy);
-          else ctx!.lineTo(x, yy);
-        }
-        ctx!.strokeStyle = `rgba(220, 245, 235, ${alpha})`;
-        ctx!.lineWidth = 1.2 + lit * 0.8;
-        ctx!.stroke();
+        ctx!.arc(0, 0, rw, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
       }
 
-      // Crystal sparkles on crests — advect with current
-      for (let i = 0; i < 55; i++) {
-        const px = ((i * 89.7 + t * 36) % (width + 100)) - 50;
-        const py =
-          ((i * 47.3 + t * 22) % height) +
-          Math.sin(t * 0.35 + i) * 14;
-        const pulse = Math.pow(Math.max(0, Math.sin(t * 1.5 + i * 0.85)), 9);
-        if (pulse < 0.14) continue;
-        const a = pulse * 0.65 * (1 - Math.min(0.88, py / height));
-        ctx!.fillStyle = `rgba(255, 250, 230, ${a})`;
+      // Broader soft caustic patches
+      for (let i = 0; i < 16; i++) {
+        const px = ((i * 211 + t * 16) % (width + 200)) - 100;
+        const py = ((i * 157 + t * 11) % (height + 100)) - 50;
+        const a = 0.035 * (0.55 + 0.45 * (1 - py / height));
+        const eg = ctx!.createRadialGradient(px, py, 0, px, py, 70 + (i % 4) * 18);
+        eg.addColorStop(0, `rgba(210, 240, 220, ${a})`);
+        eg.addColorStop(1, "rgba(0,0,0,0)");
+        ctx!.fillStyle = eg;
         ctx!.beginPath();
-        ctx!.arc(px, py, 1.45, 0, Math.PI * 2);
+        ctx!.ellipse(px, py, 90 + (i % 3) * 20, 22 + (i % 2) * 8, -0.4, 0, Math.PI * 2);
         ctx!.fill();
-        ctx!.fillRect(px - 0.35, py - 2.2, 0.7, 4.4);
-        ctx!.fillRect(px - 2.2, py - 0.35, 4.4, 0.7);
+      }
+
+      // Diamond sparkles on wave peaks
+      for (let i = 0; i < 70; i++) {
+        const px = ((i * 97.3 + t * 34) % (width + 100)) - 50;
+        const py =
+          ((i * 53.1 + t * 20) % height) + Math.sin(t * 0.35 + i) * 10;
+        const inSun = px / width < 0.55 && py / height < 0.5;
+        const pulse = Math.pow(Math.max(0, Math.sin(t * 1.55 + i * 0.91)), inSun ? 8 : 11);
+        if (pulse < 0.15) continue;
+        const a = pulse * (inSun ? 0.75 : 0.38);
+        const s = inSun ? 1.55 : 1.1;
+        ctx!.fillStyle = `rgba(255, 252, 235, ${a})`;
+        ctx!.beginPath();
+        ctx!.arc(px, py, s * 0.75, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.fillRect(px - 0.3, py - s * 1.35, 0.6, s * 2.7);
+        ctx!.fillRect(px - s * 1.35, py - 0.3, s * 2.7, 0.6);
       }
 
       raf = requestAnimationFrame(tick);

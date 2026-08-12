@@ -42,19 +42,18 @@ export function SparkleAura({ reducedMotion, flowTime }: SparkleAuraProps) {
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       sparks = [];
-      const count = Math.min(56, Math.floor((width * height) / 32000));
+      const count = Math.min(88, Math.floor((width * height) / 22000));
       for (let i = 0; i < count; i++) {
-        // Bias toward upper-left lit water
         const bias = Math.random();
-        const x = bias < 0.55 ? Math.random() * width * 0.55 : Math.random() * width;
-        const y = bias < 0.55 ? Math.random() * height * 0.5 : Math.random() * height;
+        const x = bias < 0.6 ? Math.random() * width * 0.6 : Math.random() * width;
+        const y = bias < 0.6 ? Math.random() * height * 0.55 : Math.random() * height;
         sparks.push({
           x,
           y,
-          size: 0.6 + Math.random() * 1.8,
+          size: 0.55 + Math.random() * 2,
           phase: Math.random() * Math.PI * 2,
-          speed: 0.8 + Math.random() * 1.6,
-          warm: Math.random() > 0.35,
+          speed: 0.75 + Math.random() * 1.7,
+          warm: Math.random() > 0.3,
         });
       }
     }
