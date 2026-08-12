@@ -11,7 +11,9 @@ type FloatingElementProps = {
   widthPx: number;
   rotateDeg?: number;
   flip?: boolean;
-  /** Individual bob phase offset — shared current is the same for everyone */
+  /** Amplitude of shared current drift (px) */
+  driftPx?: number;
+  /** Tiny local phase for bob only — current direction is shared */
   phase?: number;
   reducedMotion: boolean;
   flowTime: MotionValue<number>;
@@ -24,9 +26,8 @@ type FloatingElementProps = {
 };
 
 /**
- * Flora on ONE water plane, riding the shared pond current.
- * Directional drift is identical for all floaters; only bob/sway phase differs.
- * Stable sun-kissed rim (no traveling sheen band).
+ * Flora on the shared pond plane. Primary motion follows one pond current
+ * (same direction/rhythm for every plant); local phase only adds gentle bob/sway.
  */
 export function FloatingElement({
   src,
@@ -35,6 +36,7 @@ export function FloatingElement({
   widthPx,
   rotateDeg = 0,
   flip = false,
+  driftPx = 14,
   phase = 0,
   reducedMotion,
   flowTime,
@@ -46,7 +48,9 @@ export function FloatingElement({
   brightness = 1,
 }: FloatingElementProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [maskUrl, setMaskUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const maskUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setMounted(true));
@@ -60,44 +64,72 @@ export function FloatingElement({
       const el = canvasRef.current;
       el.width = matted.width;
       el.height = matted.height;
-      el.getContext("2d")?.drawImage(matted, 0, 0);
+      const ctx = el.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, el.width, el.height);
+      ctx.drawImage(matted, 0, 0);
+
+      matted.toBlob((blob) => {
+        if (cancelled || !blob) return;
+        if (maskUrlRef.current) URL.revokeObjectURL(maskUrlRef.current);
+        const url = URL.createObjectURL(blob);
+        maskUrlRef.current = url;
+        setMaskUrl(url);
+      }, "image/png");
     });
     return () => {
       cancelled = true;
+      if (maskUrlRef.current) {
+        URL.revokeObjectURL(maskUrlRef.current);
+        maskUrlRef.current = null;
+      }
     };
   }, [src]);
 
-  const bobScale = kind === "baby" ? 0.85 : kind === "lotus" ? 1 : 0.9;
-  const swayAmp = kind === "pad" ? 1.8 : kind === "baby" ? 3.6 : 2.6;
-  const flexAmp = kind === "pad" ? 0.014 : kind === "lotus" ? 0.02 : 0.016;
+  const bobAmp = kind === "baby" ? 0.85 : kind === "lotus" ? 1 : 0.75;
+  const rockAmp = kind === "baby" ? 3.6 : kind === "lotus" ? 2.4 : 1.4;
 
   const nudgeX = useTransform(cursorX, (v) => v * influence);
   const nudgeY = useTransform(cursorY, (v) => v * influence);
 
-  // SHARED current vector (same phase for every plant) + tiny personal bob
+  // Shared current axis (matches water pan: left + slightly up). Same phase for all.
   const driftX = useTransform(flowTime, (t) => {
-    const current = Math.sin(t * 0.22) * 26;
-    const bob = Math.sin(t * 0.48 + phase) * 3.5 * bobScale;
-    return current + bob;
+    const current = Math.sin(t * 0.2) * driftPx;
+    const local = Math.sin(t * 0.55 + phase) * 2.4;
+    return current + local;
   });
   const driftY = useTransform(flowTime, (t) => {
-    const current = Math.cos(t * 0.22) * 11;
-    const bob = Math.cos(t * 0.4 + phase * 1.2) * 2.2 * bobScale;
+    const current = Math.sin(t * 0.2) * driftPx * 0.42;
+    const bob = Math.cos(t * 0.48 + phase) * 2.8 * bobAmp;
     return current + bob;
   });
   const sway = useTransform(
     flowTime,
-    (t) => rotateDeg + Math.sin(t * 0.28 + phase * 0.6) * swayAmp,
+    (t) => rotateDeg + Math.sin(t * 0.2) * 1.6 + Math.sin(t * 0.45 + phase) * (kind === "pad" ? 1.4 : 2.2),
   );
-  const rock = useTransform(
+  const rock = useTransform(flowTime, (t) => Math.sin(t * 0.58 + phase) * rockAmp);
+  const stretchX = useTransform(
     flowTime,
-    (t) => Math.sin(t * 0.55 + phase) * (kind === "baby" ? 3.2 : kind === "lotus" ? 2.2 : 1.3),
+    (t) => 1 + Math.sin(t * 0.5 + phase * 0.4) * (kind === "lotus" ? 0.018 : 0.01),
   );
-  const stretchX = useTransform(flowTime, (t) => 1 + Math.sin(t * 0.45 + phase) * flexAmp);
-  const stretchY = useTransform(flowTime, (t) => 1 + Math.cos(t * 0.42 + phase) * flexAmp * 0.85);
+  const stretchY = useTransform(
+    flowTime,
+    (t) => 1 + Math.cos(t * 0.46 + phase * 0.9) * (kind === "lotus" ? 0.014 : 0.008),
+  );
 
   const reflectionColor =
-    reflection === "pink" ? "rgba(200,110,140,0.4)" : "rgba(25,70,50,0.42)";
+    reflection === "pink" ? "rgba(210,110,140,0.4)" : "rgba(25,70,50,0.42)";
+
+  const silhouetteMask = maskUrl
+    ? {
+        WebkitMaskImage: `url(${maskUrl})`,
+        maskImage: `url(${maskUrl})`,
+        WebkitMaskSize: "100% 100%",
+        maskSize: "100% 100%",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+      }
+    : undefined;
 
   return (
     <motion.div
@@ -126,28 +158,21 @@ export function FloatingElement({
               }
         }
       >
-        {/* Depth: shadow cast away from upper-left sun (toward bottom-right) */}
+        {/* Reflection in the water — offset slightly with the light direction */}
         <div
-          className="pointer-events-none absolute left-[54%] top-[70%] rounded-[100%] bg-[radial-gradient(ellipse_at_center,_rgba(0,6,5,0.5)_0%,_transparent_72%)] blur-[5px]"
-          style={{ width: "78%", height: "28%" }}
-        />
-
-        {/* Soft distorted reflection in the water */}
-        <div
-          className="pointer-events-none absolute left-1/2 top-[88%] -translate-x-1/2 rounded-[100%] blur-[8px]"
+          className="pointer-events-none absolute left-[52%] top-[86%] -translate-x-1/2 rounded-[100%] blur-[8px]"
           style={{
-            width: "62%",
-            height: "26%",
+            width: "68%",
+            height: "30%",
             background: `radial-gradient(ellipse at center, ${reflectionColor} 0%, transparent 72%)`,
-            opacity: 0.65,
-            transform: "translateX(-50%) scaleY(0.9)",
+            opacity: 0.7,
           }}
         />
 
-        {/* Contact darkening where plant meets water */}
+        {/* Contact shadow — opposite the sun (down-right) for depth */}
         <div
-          className="pointer-events-none absolute left-1/2 top-[66%] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_center,_rgba(0,10,8,0.45)_0%,_transparent_70%)]"
-          style={{ width: "70%", height: "20%" }}
+          className="pointer-events-none absolute left-[54%] top-[66%] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_center,_rgba(0,6,4,0.55)_0%,_transparent_72%)]"
+          style={{ width: "78%", height: "26%" }}
         />
 
         <canvas
@@ -158,18 +183,35 @@ export function FloatingElement({
             display: "block",
             position: "relative",
             transform: flip ? "scaleX(-1)" : undefined,
-            filter: `brightness(${brightness}) saturate(1.08) contrast(1.04)`,
+            filter: `brightness(${brightness}) saturate(1.12) contrast(1.06)`,
           }}
         />
 
-        {/* Stable sun kiss on the lit side — ellipse only, never a bounding-box wash */}
-        <div
-          className="pointer-events-none absolute left-[8%] top-[6%] h-[42%] w-[48%] rounded-[100%]"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(255,245,220,0.32) 0%, transparent 68%)",
-          }}
-        />
+        {/* Stable sun-kissed rim — FIXED upper-left, never sweeps */}
+        {maskUrl && (
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              ...silhouetteMask,
+              background:
+                "radial-gradient(ellipse 70% 60% at 18% 12%, rgba(255,245,220,0.35) 0%, transparent 55%)",
+              opacity: 0.55,
+            }}
+          />
+        )}
+
+        {/* Soft waterline highlight along the lower silhouette */}
+        {maskUrl && (
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              ...silhouetteMask,
+              background:
+                "linear-gradient(to top, rgba(180,220,200,0.22) 0%, transparent 28%)",
+              opacity: 0.7,
+            }}
+          />
+        )}
       </motion.div>
     </motion.div>
   );

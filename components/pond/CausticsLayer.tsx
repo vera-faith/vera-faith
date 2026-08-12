@@ -12,10 +12,7 @@ const LAYER: CSSProperties = {
   transform: "translateZ(0)",
 };
 
-/**
- * Specular glitter locked to the stable upper-left sun.
- * Sparkles drift gently in place — never a full-screen scanning beam.
- */
+/** Tiny warm sparkles near the stable upper-left sun — not a sweeping beam. */
 export function CausticsLayer({ reducedMotion }: CausticsLayerProps) {
   if (reducedMotion) return null;
 
@@ -25,21 +22,21 @@ export function CausticsLayer({ reducedMotion }: CausticsLayerProps) {
         className="absolute inset-0"
         style={{
           WebkitMaskImage:
-            "radial-gradient(ellipse 58% 48% at 16% 12%, #000 0%, #000 38%, transparent 72%)",
+            "radial-gradient(ellipse 55% 48% at 16% 12%, #000 0%, #000 35%, transparent 70%)",
           maskImage:
-            "radial-gradient(ellipse 58% 48% at 16% 12%, #000 0%, #000 38%, transparent 72%)",
+            "radial-gradient(ellipse 55% 48% at 16% 12%, #000 0%, #000 35%, transparent 70%)",
         }}
       >
         <motion.div
-          className="absolute left-[4%] top-[2%] h-[55%] w-[45%] opacity-[0.28]"
+          className="absolute -inset-[10%] opacity-[0.16]"
           style={{
             ...LAYER,
             backgroundImage:
-              "radial-gradient(circle, rgba(255,245,210,0.75) 0px, rgba(255,235,190,0.18) 1.4px, transparent 2.8px)",
-            backgroundSize: "40px 28px",
+              "radial-gradient(circle, rgba(255,245,210,0.65) 0px, transparent 2.2px)",
+            backgroundSize: "52px 40px",
           }}
-          animate={{ x: [0, -18], y: [0, 8], opacity: [0.22, 0.32, 0.22] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ x: [0, -26], y: [0, 10] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
         />
       </div>
     </div>

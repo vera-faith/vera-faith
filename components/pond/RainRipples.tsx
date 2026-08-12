@@ -55,8 +55,8 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
     window.addEventListener("resize", resize);
 
     const ripples: Ripple[] = [];
-    let nextTiny = performance.now() + 400;
-    let nextEdge = performance.now() + 500;
+    let nextTiny = performance.now() + 280;
+    let nextEdge = performance.now() + 400;
     let nextOpen = performance.now() + 1600;
 
     function spawn(
@@ -67,7 +67,7 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
       maxRadius: number,
       aspect = 1.35,
     ) {
-      if (ripples.length > 42) ripples.shift();
+      if (ripples.length > 28) ripples.shift();
       ripples.push({ x, y, born: performance.now(), life, maxRadius, strength, aspect });
     }
 
@@ -75,25 +75,25 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
       if (!anchors.length || width <= 0) return;
       const a = anchors[Math.floor(Math.random() * anchors.length)];
       const angle = Math.random() * Math.PI * 2;
-      const edge = a.radius * Math.min(width, height) * (0.65 + Math.random() * 0.55);
+      const edge = a.radius * Math.min(width, height) * (0.7 + Math.random() * 0.5);
       const x = a.nx * width + Math.cos(angle) * edge;
       const y = a.ny * height + Math.sin(angle) * edge * 0.7;
-      spawn(x, y, 0.22 + Math.random() * 0.16, 1.6 + Math.random() * 0.9, 7 + Math.random() * 10, 1.45);
+      spawn(x, y, 0.18 + Math.random() * 0.12, 1.4 + Math.random() * 0.7, 5 + Math.random() * 7, 1.4);
     }
 
     function onPointerDown(event: PointerEvent) {
-      spawn(event.clientX, event.clientY, 0.45, 2.2, 18 + Math.random() * 10, 1.4);
+      spawn(event.clientX, event.clientY, 0.35, 1.8, 12 + Math.random() * 6, 1.35);
     }
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
 
-    for (let i = 0; i < 10; i++) spawnNearAnchor();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) spawnNearAnchor();
+    for (let i = 0; i < 3; i++) {
       spawn(
         Math.random() * width,
         Math.random() * height,
-        0.18 + Math.random() * 0.12,
-        1.8,
-        7 + Math.random() * 8,
+        0.12 + Math.random() * 0.1,
+        1.4,
+        4 + Math.random() * 5,
       );
     }
 
@@ -104,27 +104,27 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
       if (now >= nextEdge) {
         spawnNearAnchor();
         if (Math.random() > 0.5) spawnNearAnchor();
-        nextEdge = now + 480 + Math.random() * 520;
+        nextEdge = now + 380 + Math.random() * 480;
       }
 
       if (now >= nextTiny) {
         spawn(
           Math.random() * width,
           Math.random() * height,
-          0.12 + Math.random() * 0.1,
-          1.3 + Math.random() * 0.6,
-          4 + Math.random() * 6,
+          0.1 + Math.random() * 0.1,
+          1.2 + Math.random() * 0.5,
+          3 + Math.random() * 5,
         );
-        nextTiny = now + 420 + Math.random() * 480;
+        nextTiny = now + 400 + Math.random() * 500;
       }
 
       if (now >= nextOpen) {
         spawn(
           Math.random() * width,
           Math.random() * height,
-          0.14 + Math.random() * 0.1,
-          1.8 + Math.random() * 0.5,
-          7 + Math.random() * 7,
+          0.14 + Math.random() * 0.08,
+          1.6 + Math.random() * 0.4,
+          6 + Math.random() * 5,
         );
         nextOpen = now + 1800 + Math.random() * 1400;
       }
@@ -143,7 +143,7 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
 
         const eased = 1 - Math.pow(1 - t, 2.2);
         const radius = Math.max(0, eased * r.maxRadius);
-        const fade = (1 - t) * (1 - t) * 0.38 * r.strength;
+        const fade = (1 - t) * (1 - t) * 0.22 * r.strength;
 
         ctx!.save();
         ctx!.translate(r.x, r.y);
@@ -151,16 +151,8 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
         ctx!.beginPath();
         ctx!.arc(0, 0, radius, 0, Math.PI * 2);
         ctx!.strokeStyle = `rgba(205, 235, 220, ${fade})`;
-        ctx!.lineWidth = 0.9;
+        ctx!.lineWidth = 0.7;
         ctx!.stroke();
-        // Soft inner ring — reads as water wrapping the contact edge
-        if (radius > 4) {
-          ctx!.beginPath();
-          ctx!.arc(0, 0, radius * 0.55, 0, Math.PI * 2);
-          ctx!.strokeStyle = `rgba(190, 220, 205, ${fade * 0.45})`;
-          ctx!.lineWidth = 0.55;
-          ctx!.stroke();
-        }
         ctx!.restore();
       }
 
@@ -180,7 +172,7 @@ export function RainRipples({ reducedMotion, anchors = [] }: RainRipplesProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-40"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-45"
       aria-hidden
     />
   );
