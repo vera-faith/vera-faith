@@ -2,12 +2,25 @@
  * FloatingElements sharing a sprite don't redo the flood-fill matte. */
 const keyedCache = new Map<string, HTMLCanvasElement>();
 
+export type KeyMode = "lotus" | "pad";
+
+type KeyOptions = {
+  tolerance?: number;
+  feather?: number;
+  /** lotus keeps crisp opaque petals; pad settles into pond tone */
+  mode?: KeyMode;
+};
+
 /** Removes a plain white background from a loaded image, returning a new
  * canvas with alpha transparency. Flood-fills from the borders so bright
  * petal/leaf highlights inside the subject are not erased. */
 export function keyOutWhite(
   image: HTMLImageElement,
-  { tolerance = 26, feather = 20 }: { tolerance?: number; feather?: number } = {},
+  {
+    tolerance = 26,
+    feather = 20,
+    mode = "pad",
+  }: KeyOptions = {},
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = image.naturalWidth;
@@ -111,17 +124,26 @@ export function keyOutWhite(
   }
 
   ctx.putImageData(frame, 0, 0);
-  tintWetEdges(ctx, width, height);
-  settleIntoPond(ctx, width, height);
+
+  if (mode === "pad") {
+    tintWetEdges(ctx, width, height, [10, 42, 36], 0.48);
+    settleIntoPond(ctx, width, height);
+  } else {
+    // Lotus: keep petal color intact — only a whisper of wet fringe at the base
+    tintWetEdges(ctx, width, height, [18, 55, 48], 0.18);
+    sealLotusOpacity(ctx, width, height);
+  }
+
   return canvas;
 }
 
-/** Soft teal fringe on edges — melts plant silhouettes into dark pond water. */
+/** Soft teal fringe on edges — strength depends on flora type. */
 function tintWetEdges(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   water: [number, number, number] = [10, 42, 36],
+  maxWet = 0.48,
 ) {
   const frame = ctx.getImageData(0, 0, width, height);
   const data = frame.data;
@@ -129,17 +151,38 @@ function tintWetEdges(
   for (let i = 0; i < data.length; i += 4) {
     const a = data[i + 3];
     if (a === 0 || a >= 245) continue;
-    const wet = Math.min(0.48, (1 - a / 255) * 1.15);
+    const y = ((i / 4) / width) | 0;
+    // Lotuses only wet near the bottom contact; pads wet all soft edges
+    const depthBias = maxWet < 0.3 ? Math.max(0, (y / height - 0.55) / 0.45) : 1;
+    const wet = Math.min(maxWet, (1 - a / 255) * 1.15 * depthBias);
     if (wet <= 0.03) continue;
     data[i] = Math.round(data[i] * (1 - wet) + water[0] * wet);
     data[i + 1] = Math.round(data[i + 1] * (1 - wet) + water[1] * wet);
     data[i + 2] = Math.round(data[i + 2] * (1 - wet) + water[2] * wet);
-    data[i + 3] = Math.round(a * (1 - wet * 0.18));
+    data[i + 3] = Math.round(a * (1 - wet * 0.1));
   }
   ctx.putImageData(frame, 0, 0);
 }
 
-/** Pull sticker-bright highlights into pond light so flora shares water tone. */
+/** Ensure lotus petals stay fully opaque — no ghost / foggy alpha. */
+function sealLotusOpacity(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  const frame = ctx.getImageData(0, 0, width, height);
+  const data = frame.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3];
+    if (a > 40 && a < 252) {
+      // Snap near-solid petal pixels to full opacity so they read crisp
+      data[i + 3] = a > 120 ? 255 : Math.min(255, Math.round(a * 1.35));
+    }
+  }
+  ctx.putImageData(frame, 0, 0);
+}
+
+/** Pull sticker-bright highlights into pond light — pads only. */
 function settleIntoPond(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -157,7 +200,6 @@ function settleIntoPond(
     let b = data[i + 2];
     const lum = 0.299 * r + 0.587 * g + 0.114 * b;
 
-    // Crush neon speculars (common on lily-pad sprites)
     if (lum > 175) {
       const crush = Math.min(0.7, (lum - 175) / 80);
       r = Math.round(r * (1 - crush) + 55 * crush);
@@ -165,13 +207,11 @@ function settleIntoPond(
       b = Math.round(b * (1 - crush) + 75 * crush);
     }
 
-    // Slight cool-green ambient so plants share pond color temperature
     const ambient = 0.12;
     r = Math.round(r * (1 - ambient) + pond[0] * ambient);
     g = Math.round(g * (1 - ambient) + pond[1] * ambient);
     b = Math.round(b * (1 - ambient) + pond[2] * ambient);
 
-    // Soft vertical wetness — lower third drinks more pond tone
     const y = ((i / 4) / width) | 0;
     const depth = y / height;
     if (depth > 0.55) {
@@ -188,15 +228,12 @@ function settleIntoPond(
   ctx.putImageData(frame, 0, 0);
 }
 
-type KeyOptions = { tolerance?: number; feather?: number };
-
-/** Load + matte a sprite once per src, reusing the result across floaters.
- * Soft feather helps plant edges melt into the water instead of cutting hard. */
+/** Load + matte a sprite once per src, reusing the result across floaters. */
 export function loadKeyedSprite(
   src: string,
-  { tolerance = 30, feather = 18 }: KeyOptions = {},
+  { tolerance = 30, feather = 18, mode = "pad" }: KeyOptions = {},
 ): Promise<HTMLCanvasElement> {
-  const cacheKey = `${src}|${tolerance}|${feather}|settle2`;
+  const cacheKey = `${src}|${tolerance}|${feather}|${mode}|v3`;
   const hit = keyedCache.get(cacheKey);
   if (hit) return Promise.resolve(hit);
 
@@ -204,7 +241,7 @@ export function loadKeyedSprite(
     const image = new window.Image();
     image.crossOrigin = "anonymous";
     image.onload = () => {
-      const matted = keyOutWhite(image, { tolerance, feather });
+      const matted = keyOutWhite(image, { tolerance, feather, mode });
       keyedCache.set(cacheKey, matted);
       resolve(matted);
     };
