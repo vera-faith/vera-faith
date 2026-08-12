@@ -1,5 +1,5 @@
-import { PortfolioExperience } from "@/components/experience/PortfolioExperience";
+import { LotusPondEntrance } from "@/components/pond/LotusPondEntrance";
 
 export default function Home() {
-  return <PortfolioExperience />;
+  return <LotusPondEntrance />;
 }
