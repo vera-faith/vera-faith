@@ -33,10 +33,10 @@ export function WaterFlowFilter({ reducedMotion, onFlow }: WaterFlowFilterProps)
       const t = (now - start) / 1000;
       if (now - lastFilterUpdate >= FILTER_MS) {
         lastFilterUpdate = now;
-        offsetWaterRef.current?.setAttribute("dx", (t * 32).toFixed(2));
-        offsetWaterRef.current?.setAttribute("dy", (t * 14).toFixed(2));
-        offsetMicroRef.current?.setAttribute("dx", (t * 48).toFixed(2));
-        offsetMicroRef.current?.setAttribute("dy", (t * 22).toFixed(2));
+        offsetWaterRef.current?.setAttribute("dx", (t * 38).toFixed(2));
+        offsetWaterRef.current?.setAttribute("dy", (t * 22).toFixed(2));
+        offsetMicroRef.current?.setAttribute("dx", (t * 54).toFixed(2));
+        offsetMicroRef.current?.setAttribute("dy", (t * 30).toFixed(2));
       }
       onFlowRef.current?.(t);
       raf = requestAnimationFrame(tick);

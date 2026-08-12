@@ -115,25 +115,25 @@ export function keyOutWhite(
   return canvas;
 }
 
-/** Soft teal fringe on edges — mild only so plants stay crisp and opaque. */
+/** Soft teal fringe on edges — melts plant silhouettes into dark pond water. */
 function tintWetEdges(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  water: [number, number, number] = [18, 52, 42],
+  water: [number, number, number] = [10, 42, 36],
 ) {
   const frame = ctx.getImageData(0, 0, width, height);
   const data = frame.data;
 
   for (let i = 0; i < data.length; i += 4) {
     const a = data[i + 3];
-    if (a === 0 || a >= 230) continue;
-    const wet = Math.min(0.35, (1 - a / 255) * 0.9);
-    if (wet <= 0.04) continue;
+    if (a === 0 || a >= 245) continue;
+    const wet = Math.min(0.48, (1 - a / 255) * 1.15);
+    if (wet <= 0.03) continue;
     data[i] = Math.round(data[i] * (1 - wet) + water[0] * wet);
     data[i + 1] = Math.round(data[i + 1] * (1 - wet) + water[1] * wet);
     data[i + 2] = Math.round(data[i + 2] * (1 - wet) + water[2] * wet);
-    data[i + 3] = Math.round(a * (1 - wet * 0.12));
+    data[i + 3] = Math.round(a * (1 - wet * 0.18));
   }
   ctx.putImageData(frame, 0, 0);
 }

@@ -71,10 +71,10 @@ export function SparkleAura({ reducedMotion, flowTime }: SparkleAuraProps) {
       for (const s of sparks) {
         const pulse = Math.pow(Math.max(0, Math.sin(t * s.speed + s.phase)), 8);
         if (pulse < 0.08) continue;
-        const driftX = Math.sin(t * 0.2 + s.phase) * 6;
-        const driftY = Math.sin(t * 0.2) * 2.5 + Math.cos(t * 0.45 + s.phase) * 2;
-        const x = s.x + driftX;
-        const y = s.y + driftY;
+        const driftX = Math.sin(t * 0.2 + s.phase) * 6 + t * 4;
+        const driftY = Math.sin(t * 0.2) * 2.5 + Math.cos(t * 0.45 + s.phase) * 2 + t * 2.5;
+        const x = ((s.x + driftX) % width + width) % width;
+        const y = ((s.y + driftY) % height + height) % height;
         const a = pulse * 0.85;
         const color = s.warm
           ? `rgba(255, 245, 210, ${a})`

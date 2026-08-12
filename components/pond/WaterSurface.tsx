@@ -8,109 +8,111 @@ type WaterSurfaceProps = {
   reducedMotion: boolean;
 };
 
-/** Living HD glassy emerald pond — strong current, visible wave warp, depth. */
+/** Deep emerald glassy pond — continuous down-right current, visible depth. */
 export function WaterSurface({ reducedMotion }: WaterSurfaceProps) {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-[#010a08]">
+    <div className="absolute inset-0 overflow-hidden bg-[#020e0c]">
       <div
-        className="absolute -inset-[18%]"
+        className="absolute -inset-[20%]"
         style={{
           filter: reducedMotion ? undefined : `url(#${WATER_FLOW_FILTER_ID})`,
         }}
       >
+        {/* Primary glass water — rich emerald / teal depth */}
         <Image
-          src="/pond/pond-water-dark.jpg"
+          src="/pond/pond-water-glass.jpg"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="object-cover brightness-[0.78] contrast-[1.22] saturate-[1.3]"
+          className="object-cover brightness-[0.72] contrast-[1.28] saturate-[1.35]"
         />
-        {/* Sharp secondary texture — keeps detail under displacement */}
-        <div className="absolute inset-0 opacity-[0.45]">
+        <div className="absolute inset-0 opacity-[0.55] mix-blend-soft-light">
           <Image
             src="/pond/pond-water-flow.jpg"
             alt=""
             fill
             sizes="100vw"
-            className="object-cover brightness-[0.7] contrast-[1.15] saturate-[1.2]"
+            className="object-cover brightness-[0.65] contrast-[1.2] saturate-[1.25]"
           />
         </div>
-        {/* Soft glass luminosity (light blur only) */}
-        <div className="absolute inset-0 opacity-[0.28] blur-[6px] saturate-[1.25]">
+        <div className="absolute inset-0 opacity-[0.35]">
           <Image
-            src="/pond/pond-water-glass.jpg"
+            src="/pond/pond-water-dark.jpg"
             alt=""
             fill
             sizes="100vw"
-            className="object-cover brightness-[1.05]"
+            className="object-cover brightness-[0.55] contrast-[1.15]"
           />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_26%_20%,_rgba(100,190,165,0.2)_0%,_transparent_65%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_75%_at_72%_80%,_rgba(0,16,14,0.5)_0%,_transparent_55%)]" />
-        <div className="absolute inset-0 opacity-[0.14]">
+        {/* Depth: lit upper-left → deep moody lower-right */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_72%_58%_at_18%_12%,_rgba(70,160,140,0.22)_0%,_transparent_62%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_80%_at_78%_88%,_rgba(0,10,12,0.72)_0%,_transparent_58%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(145deg,_rgba(20,70,60,0.12)_0%,_transparent_40%,_rgba(0,8,10,0.35)_100%)]" />
+        <div className="absolute inset-0 opacity-[0.18]">
           <Image
             src="/pond/pond-reflection.jpg"
             alt=""
             fill
             sizes="100vw"
-            className="object-cover blur-[2px]"
+            className="object-cover blur-[3px] brightness-[0.7]"
           />
         </div>
       </div>
 
       {!reducedMotion && (
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.4]"
+          className="pointer-events-none absolute inset-0 opacity-[0.38]"
           style={{ filter: `url(#${WATER_MICRO_FILTER_ID})` }}
         >
-          <div className="absolute -inset-[10%] bg-[radial-gradient(ellipse_at_28%_18%,_rgba(220,245,230,0.16)_0%,_transparent_42%),_radial-gradient(ellipse_at_65%_55%,_rgba(50,130,110,0.12)_0%,_transparent_50%)]" />
+          <div className="absolute -inset-[12%] bg-[radial-gradient(ellipse_at_22%_14%,_rgba(180,230,210,0.14)_0%,_transparent_44%),_radial-gradient(ellipse_at_70%_60%,_rgba(25,80,70,0.18)_0%,_transparent_52%)]" />
         </div>
       )}
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_56%_48%_at_11%_7%,_rgba(255,236,190,0.2)_0%,_transparent_65%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_94%_90%,_rgba(0,5,4,0.55)_0%,_transparent_55%)]" />
+      {/* Stable sun pool — upper left, no scanning bars */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_52%_44%_at_12%_8%,_rgba(255,236,195,0.18)_0%,_transparent_68%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_92%_92%,_rgba(0,4,6,0.62)_0%,_transparent_55%)]" />
 
-      {/* Fast primary current — clearly visible pan */}
+      {/* Primary current sheet — down-right */}
       {!reducedMotion && (
         <motion.div
-          className="absolute -inset-[75%] opacity-[0.48]"
+          className="absolute -inset-[80%] opacity-[0.42] mix-blend-soft-light"
           style={{ willChange: "transform" }}
-          animate={{ x: [0, -420], y: [0, -170] }}
-          transition={{ duration: 5.2, repeat: Infinity, ease: "linear" }}
+          animate={{ x: [0, 420], y: [0, 260] }}
+          transition={{ duration: 6.2, repeat: Infinity, ease: "linear" }}
         >
           <Image
             src="/pond/pond-water-flow.jpg"
             alt=""
             fill
             sizes="100vw"
-            className="object-cover brightness-[0.75] contrast-[1.12]"
+            className="object-cover brightness-[0.7] contrast-[1.18] saturate-[1.15]"
           />
         </motion.div>
       )}
 
       {!reducedMotion && (
         <motion.div
-          className="absolute -inset-[60%] opacity-[0.2]"
+          className="absolute -inset-[65%] opacity-[0.22] mix-blend-overlay"
           style={{ willChange: "transform" }}
-          animate={{ x: [0, 180], y: [0, 70] }}
-          transition={{ duration: 9.5, repeat: Infinity, ease: "linear" }}
+          animate={{ x: [0, 200], y: [0, 130] }}
+          transition={{ duration: 11.5, repeat: Infinity, ease: "linear" }}
         >
           <Image
-            src="/pond/pond-water-dark.jpg"
+            src="/pond/pond-water-glass.jpg"
             alt=""
             fill
             sizes="100vw"
-            className="object-cover brightness-[0.8]"
+            className="object-cover brightness-[0.75]"
           />
         </motion.div>
       )}
 
       {!reducedMotion && (
         <motion.div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_58%_at_20%_14%,_rgba(255,245,210,0.12),_transparent_62%)]"
-          animate={{ opacity: [0.35, 0.9, 0.35], scale: [1, 1.04, 1] }}
-          transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_78%_55%_at_16%_10%,_rgba(255,245,210,0.1),_transparent_64%)]"
+          animate={{ opacity: [0.4, 0.85, 0.4] }}
+          transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
     </div>

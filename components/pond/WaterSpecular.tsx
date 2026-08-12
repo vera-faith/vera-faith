@@ -8,7 +8,7 @@ type WaterSpecularProps = {
   flowTime: MotionValue<number>;
 };
 
-/** Stronger glassy wave-crest highlights — visible liquid motion. */
+/** Stronger glassy wave-crest highlights — visible liquid motion on deep emerald. */
 export function WaterSpecular({ reducedMotion, flowTime }: WaterSpecularProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -41,58 +41,58 @@ export function WaterSpecular({ reducedMotion, flowTime }: WaterSpecularProps) {
       ctx!.globalCompositeOperation = "lighter";
 
       const g = ctx!.createRadialGradient(
-        width * 0.16 + Math.sin(t * 0.18) * 24,
-        height * 0.12,
+        width * 0.14 + Math.sin(t * 0.16) * 20,
+        height * 0.1,
         0,
-        width * 0.2,
-        height * 0.18,
-        Math.max(width, height) * 0.58,
+        width * 0.18,
+        height * 0.16,
+        Math.max(width, height) * 0.55,
       );
-      g.addColorStop(0, "rgba(210, 240, 225, 0.18)");
-      g.addColorStop(0.4, "rgba(130, 200, 175, 0.07)");
+      g.addColorStop(0, "rgba(200, 235, 215, 0.14)");
+      g.addColorStop(0.4, "rgba(90, 170, 145, 0.06)");
       g.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx!.fillStyle = g;
       ctx!.fillRect(0, 0, width, height);
 
-      // Visible undulating wave ridges
-      for (let i = 0; i < 18; i++) {
-        const phase = t * 0.32 + i * 0.41;
-        const yBase = ((i / 18 + t * 0.04) % 1.2) - 0.05;
+      // Undulating wave ridges drifting down-right
+      for (let i = 0; i < 20; i++) {
+        const phase = t * 0.34 + i * 0.39;
+        const yBase = ((i / 20 + t * 0.045) % 1.25) - 0.08;
         const y = yBase * height;
-        const amp = 14 + (i % 4) * 5;
-        const lit = 1 - Math.min(1, y / height * 0.65);
-        const alpha = (0.07 + (Math.sin(phase * 1.4) * 0.5 + 0.5) * 0.12) * lit;
+        const amp = 12 + (i % 4) * 4.5;
+        const lit = 1 - Math.min(1, (y / height) * 0.7);
+        const alpha = (0.055 + (Math.sin(phase * 1.4) * 0.5 + 0.5) * 0.1) * lit;
 
         ctx!.beginPath();
-        for (let x = -50; x <= width + 50; x += 14) {
+        for (let x = -50; x <= width + 50; x += 12) {
           const yy =
             y +
-            Math.sin(x * 0.007 + phase * 2.4) * amp +
-            Math.sin(x * 0.018 + phase * 1.2) * (amp * 0.4) +
-            Math.sin(t * 0.2) * 6;
+            Math.sin(x * 0.0075 + phase * 2.2) * amp +
+            Math.sin(x * 0.017 + phase * 1.1) * (amp * 0.38) +
+            Math.sin(t * 0.18) * 5;
           if (x === -50) ctx!.moveTo(x, yy);
           else ctx!.lineTo(x, yy);
         }
-        ctx!.strokeStyle = `rgba(235, 250, 240, ${alpha})`;
-        ctx!.lineWidth = 1.4 + lit;
+        ctx!.strokeStyle = `rgba(220, 245, 235, ${alpha})`;
+        ctx!.lineWidth = 1.2 + lit * 0.8;
         ctx!.stroke();
       }
 
-      // Crystal sparkles on crests
-      for (let i = 0; i < 50; i++) {
-        const px = ((i * 89.7 + t * 28) % (width + 100)) - 50;
+      // Crystal sparkles on crests — advect with current
+      for (let i = 0; i < 55; i++) {
+        const px = ((i * 89.7 + t * 36) % (width + 100)) - 50;
         const py =
-          ((i * 47.3 + t * 8) % height) +
-          Math.sin(t * 0.4 + i) * 16;
-        const pulse = Math.pow(Math.max(0, Math.sin(t * 1.6 + i * 0.85)), 9);
-        if (pulse < 0.12) continue;
-        const a = pulse * 0.7 * (1 - Math.min(0.85, py / height));
-        ctx!.fillStyle = `rgba(255, 252, 235, ${a})`;
+          ((i * 47.3 + t * 22) % height) +
+          Math.sin(t * 0.35 + i) * 14;
+        const pulse = Math.pow(Math.max(0, Math.sin(t * 1.5 + i * 0.85)), 9);
+        if (pulse < 0.14) continue;
+        const a = pulse * 0.65 * (1 - Math.min(0.88, py / height));
+        ctx!.fillStyle = `rgba(255, 250, 230, ${a})`;
         ctx!.beginPath();
-        ctx!.arc(px, py, 1.6, 0, Math.PI * 2);
+        ctx!.arc(px, py, 1.45, 0, Math.PI * 2);
         ctx!.fill();
-        ctx!.fillRect(px - 0.4, py - 2.4, 0.8, 4.8);
-        ctx!.fillRect(px - 2.4, py - 0.4, 4.8, 0.8);
+        ctx!.fillRect(px - 0.35, py - 2.2, 0.7, 4.4);
+        ctx!.fillRect(px - 2.2, py - 0.35, 4.4, 0.7);
       }
 
       raf = requestAnimationFrame(tick);
@@ -110,7 +110,7 @@ export function WaterSpecular({ reducedMotion, flowTime }: WaterSpecularProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-95"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-90"
       aria-hidden
     />
   );
