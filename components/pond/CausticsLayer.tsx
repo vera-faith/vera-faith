@@ -12,7 +12,7 @@ const LAYER: CSSProperties = {
   transform: "translateZ(0)",
 };
 
-/** Tiny warm sparkles near the stable upper-left sun — not a sweeping beam. */
+/** Broader glassy caustic shimmer — still sun-biased, never a scanning beam. */
 export function CausticsLayer({ reducedMotion }: CausticsLayerProps) {
   if (reducedMotion) return null;
 
@@ -22,23 +22,47 @@ export function CausticsLayer({ reducedMotion }: CausticsLayerProps) {
         className="absolute inset-0"
         style={{
           WebkitMaskImage:
-            "radial-gradient(ellipse 55% 48% at 16% 12%, #000 0%, #000 35%, transparent 70%)",
+            "radial-gradient(ellipse 75% 65% at 20% 18%, #000 0%, #000 42%, transparent 78%)",
           maskImage:
-            "radial-gradient(ellipse 55% 48% at 16% 12%, #000 0%, #000 35%, transparent 70%)",
+            "radial-gradient(ellipse 75% 65% at 20% 18%, #000 0%, #000 42%, transparent 78%)",
         }}
       >
         <motion.div
-          className="absolute -inset-[10%] opacity-[0.16]"
+          className="absolute -inset-[14%] opacity-[0.28]"
           style={{
             ...LAYER,
             backgroundImage:
-              "radial-gradient(circle, rgba(255,245,210,0.65) 0px, transparent 2.2px)",
+              "radial-gradient(ellipse 50% 20%, rgba(255,248,220,0.55) 0%, transparent 68%), radial-gradient(circle, rgba(255,252,235,0.55) 0px, transparent 2.2px)",
+            backgroundSize: "100px 55px, 36px 28px",
+          }}
+          animate={{ x: [0, -36], y: [0, 14] }}
+          transition={{ duration: 7.5, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute -inset-[14%] opacity-[0.16]"
+          style={{
+            ...LAYER,
+            backgroundImage:
+              "radial-gradient(circle, rgba(190,235,220,0.5) 0px, transparent 2.4px)",
             backgroundSize: "52px 40px",
           }}
-          animate={{ x: [0, -26], y: [0, 10] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+          animate={{ x: [0, 26], y: [0, -18] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "linear" }}
         />
       </div>
+
+      {/* Soft full-pond glass glints — very low, adds clarity everywhere */}
+      <motion.div
+        className="absolute -inset-[10%] opacity-[0.08]"
+        style={{
+          ...LAYER,
+          backgroundImage:
+            "radial-gradient(circle, rgba(220,245,235,0.7) 0px, transparent 1.8px)",
+          backgroundSize: "64px 48px",
+        }}
+        animate={{ x: [0, -20], y: [0, 8] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+      />
     </div>
   );
 }

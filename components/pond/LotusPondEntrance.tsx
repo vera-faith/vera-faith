@@ -1,36 +1,40 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useMotionValue, useSpring } from "motion/react";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 import { WaterFlowFilter } from "@/components/pond/WaterFlowFilter";
 import { WaterSurface } from "@/components/pond/WaterSurface";
+import { WaterSpecular } from "@/components/pond/WaterSpecular";
 import { FloatingElement } from "@/components/pond/FloatingElement";
 import { CausticsLayer } from "@/components/pond/CausticsLayer";
+import { SparkleAura } from "@/components/pond/SparkleAura";
 import { RainRipples, type PlantAnchor } from "@/components/pond/RainRipples";
 
 const NUDGE_SPRING = { stiffness: 48, damping: 18, mass: 0.55 };
 
 /**
- * Reference composition (pond-reference.jpg): open water, no stacked overlaps,
- * 2 full blooms + 1 partial + a couple babies + spaced pads — one shared plane.
+ * Curated glassy pond composition — open water, bloom variety, no stacks.
+ * Sprites: neo-glass lotuses + wet veined pads.
  */
 const FLOATERS = [
-  { src: "/pond/sprite-lotus-full.png", left: 8, top: 7, width: 138, rotate: -7, flip: false, phase: 0.2, drift: 16, influence: 4, kind: "lotus" as const, reflection: "pink" as const, brightness: 1.05, cx: 14, cy: 15 },
-  { src: "/pond/sprite-pad-veined.png", left: 50, top: 4, width: 168, rotate: 14, flip: false, phase: 0.9, drift: 17, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 1.04, cx: 57, cy: 14 },
-  { src: "/pond/sprite-lotus-partial.png", left: 76, top: 9, width: 96, rotate: 10, flip: false, phase: 1.5, drift: 14, influence: 3.5, kind: "lotus" as const, reflection: "pink" as const, brightness: 1.03, cx: 81, cy: 16 },
-  { src: "/pond/sprite-lotus-full.png", left: 36, top: 34, width: 178, rotate: 3, flip: false, phase: 2.4, drift: 16, influence: 4, kind: "lotus" as const, reflection: "pink" as const, brightness: 1.07, cx: 43, cy: 45 },
-  { src: "/pond/sprite-pad-shadow.png", left: 3, top: 52, width: 188, rotate: -11, flip: false, phase: 0.4, drift: 17, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 0.9, cx: 11, cy: 64 },
-  { src: "/pond/sprite-lotus-baby.png", left: 24, top: 58, width: 56, rotate: -16, flip: true, phase: 3.0, drift: 12, influence: 3, kind: "baby" as const, reflection: "pink" as const, brightness: 1.02, cx: 27, cy: 62 },
-  { src: "/pond/sprite-pad-veined.png", left: 68, top: 50, width: 152, rotate: 5, flip: true, phase: 3.6, drift: 16, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 1.0, cx: 75, cy: 60 },
-  { src: "/pond/sprite-pad-shadow.png", left: 38, top: 72, width: 148, rotate: -3, flip: true, phase: 4.5, drift: 15, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 0.93, cx: 44, cy: 82 },
-  { src: "/pond/sprite-lotus-baby.png", left: 58, top: 74, width: 50, rotate: 12, flip: false, phase: 5.1, drift: 11, influence: 3, kind: "baby" as const, reflection: "pink" as const, brightness: 0.98, cx: 61, cy: 78 },
+  { src: "/pond/sprite-lotus-glass-full.png", left: 7, top: 6, width: 142, rotate: -6, flip: false, phase: 0.2, drift: 15, influence: 4, kind: "lotus" as const, reflection: "pink" as const, brightness: 1.06, cx: 13, cy: 14 },
+  { src: "/pond/sprite-pad-glass.png", left: 48, top: 3, width: 172, rotate: 12, flip: false, phase: 0.85, drift: 16, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 1.05, cx: 55, cy: 13 },
+  { src: "/pond/sprite-lotus-glass-mid.png", left: 74, top: 8, width: 108, rotate: 9, flip: false, phase: 1.4, drift: 13, influence: 3.5, kind: "lotus" as const, reflection: "pink" as const, brightness: 1.04, cx: 79, cy: 15 },
+  { src: "/pond/sprite-lotus-glass-full.png", left: 34, top: 32, width: 188, rotate: 2, flip: false, phase: 2.3, drift: 15, influence: 4, kind: "lotus" as const, reflection: "pink" as const, brightness: 1.08, cx: 42, cy: 44 },
+  { src: "/pond/sprite-pad-glass.png", left: 2, top: 50, width: 198, rotate: -10, flip: true, phase: 0.35, drift: 16, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 0.92, cx: 10, cy: 62 },
+  { src: "/pond/sprite-lotus-glass-baby.png", left: 22, top: 56, width: 62, rotate: -14, flip: true, phase: 2.9, drift: 11, influence: 3, kind: "baby" as const, reflection: "pink" as const, brightness: 1.03, cx: 25, cy: 61 },
+  { src: "/pond/sprite-pad-glass.png", left: 66, top: 48, width: 158, rotate: 4, flip: false, phase: 3.5, drift: 15, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 1.02, cx: 73, cy: 58 },
+  { src: "/pond/sprite-lotus-glass-mid.png", left: 52, top: 62, width: 92, rotate: -12, flip: true, phase: 4.0, drift: 12, influence: 3.5, kind: "lotus" as const, reflection: "pink" as const, brightness: 0.99, cx: 56, cy: 68 },
+  { src: "/pond/sprite-pad-glass.png", left: 36, top: 72, width: 152, rotate: -2, flip: true, phase: 4.6, drift: 14, influence: 2.5, kind: "pad" as const, reflection: "green" as const, brightness: 0.94, cx: 42, cy: 82 },
+  { src: "/pond/sprite-lotus-glass-baby.png", left: 78, top: 70, width: 54, rotate: 16, flip: false, phase: 5.2, drift: 10, influence: 3, kind: "baby" as const, reflection: "pink" as const, brightness: 1.01, cx: 81, cy: 75 },
 ] as const;
 
-/** Dark dreamy anime lotus pond — one water plane, one current, one light. */
+/** Majestic neo-glass anime lotus pond — unified living scenery. */
 export function LotusPondEntrance() {
   const reducedMotion = usePrefersReducedMotion();
   const flowTime = useMotionValue(0);
+  const flowTimeRef = useRef(0);
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
   const cursorSpringX = useSpring(cursorX, NUDGE_SPRING);
@@ -41,7 +45,8 @@ export function LotusPondEntrance() {
       FLOATERS.map((f) => ({
         nx: f.cx / 100,
         ny: f.cy / 100,
-        radius: f.width / 1700,
+        radius: f.width / 1650,
+        tint: f.reflection,
       })),
     [],
   );
@@ -58,17 +63,23 @@ export function LotusPondEntrance() {
 
   return (
     <section
-      className="relative h-dvh w-full overflow-hidden bg-[#020e0b]"
+      className="relative h-dvh w-full overflow-hidden bg-[#010c09]"
       aria-label="Immersive lotus pond entrance"
     >
-      <WaterFlowFilter reducedMotion={reducedMotion} onFlow={(t) => flowTime.set(t)} />
+      <WaterFlowFilter
+        reducedMotion={reducedMotion}
+        onFlow={(t) => {
+          flowTime.set(t);
+          flowTimeRef.current = t;
+        }}
+      />
 
       <WaterSurface reducedMotion={reducedMotion} />
+      <WaterSpecular reducedMotion={reducedMotion} flowTime={flowTime} />
 
-      {/* Stable sun wash — does not move */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_46%_40%_at_13%_9%,_rgba(255,230,175,0.09),_transparent_60%)]" />
+      {/* Stable sun atmosphere */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_48%_42%_at_12%_8%,_rgba(255,232,180,0.11),_transparent_62%)]" />
 
-      {/* All flora share one stacking context / water plane */}
       <div className="pointer-events-none absolute inset-0">
         {FLOATERS.map((f, i) => (
           <FloatingElement
@@ -93,11 +104,15 @@ export function LotusPondEntrance() {
         ))}
       </div>
 
+      {/* Ripples under sparkles so glints sit on the living surface */}
+      <RainRipples reducedMotion={reducedMotion} anchors={anchors} flowTimeRef={flowTimeRef} />
       <CausticsLayer reducedMotion={reducedMotion} />
-      <RainRipples reducedMotion={reducedMotion} anchors={anchors} />
+      <SparkleAura reducedMotion={reducedMotion} flowTime={flowTime} />
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_52%,_rgba(1,8,6,0.48)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/35" />
+      {/* Cinematic depth */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_48%,_rgba(0,6,5,0.52)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/8 via-transparent to-black/40" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_15%_10%,_rgba(255,245,220,0.06),_transparent_70%)]" />
     </section>
   );
 }
